@@ -34,7 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-title{font-size:12px;font-weight:500;color:#666;margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .card-title i{font-size:14px;color:#1565C0}
 .tab-bar{display:flex;border-radius:8px;overflow:hidden;border:.5px solid #e0e0e0;margin-bottom:6px}
-.tab-btn{flex:1;padding:6px 0;font-size:11px;font-weight:500;background:#fff;color:#666;border:none;cursor:pointer}
+.tab-btn{flex:1;padding:6px 0;white-space:nowrap;font-size:11px;font-weight:500;background:#fff;color:#666;border:none;cursor:pointer}
 .tab-btn.active{background:#1565C0;color:#fff}
 .bottom-nav{background:#fff;border-top:.5px solid #e0e0e0;display:flex;padding:6px 0 10px}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:3px 0}
@@ -92,6 +92,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty-state{text-align:center;padding:1.5rem 0;color:#888;font-size:12px}
 .empty-state i{font-size:28px;display:block;margin-bottom:6px;opacity:.4}
 .ic{font-style:normal;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.tt-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
+.tt-row input{margin-top:2px}
+.tt-opt{display:flex;gap:12px;font-size:11px;color:#555;margin:8px 0}
 .toast{position:fixed;left:50%;top:24px;transform:translate(-50%,calc(-100% - 40px));visibility:hidden;width:320px;max-width:calc(100% - 32px);background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;transition:transform .35s;z-index:99}
 .toast.show{transform:translate(-50%,0);visibility:visible}
 .toast b{display:block;font-size:13px;color:#1565C0;margin-bottom:2px}
@@ -144,6 +147,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
       <!-- ALARM -->
       <div class="tab-screen" id="scAlarm">
+        <div class="card">
+          <p class="card-title"><i class="ic">📷</i> 캡처로 시간표 불러오기</p>
+          <p style="font-size:11px;color:#888;line-height:1.5;margin-bottom:8px">학사행정 → 수강 조회 → <b>개인시간표</b> 화면을 캡처해서 올리면 AI가 읽어서 자동으로 입력해요. 최대 3장 · 이미지는 저장하지 않아요.</p>
+          <label class="btn-add" style="display:block;text-align:center">🖼️ 캡처 이미지 선택<input type="file" id="ttFile" accept="image/*" multiple hidden onchange="importTimetable(this.files)"></label>
+          <div id="ttResult" style="margin-top:8px"></div>
+        </div>
         <div class="card">
           <p class="card-title"><i class="ic">➕</i> 강의 추가</p>
           <div class="add-form">
@@ -393,7 +402,7 @@ const TABS=['home','food','alarm','schedule','rules'];
 const hData={
   home:{t:'캠퍼스 도우미'},
   food:{t:'학식 메뉴',s:'승선생활관 식당'},
-  alarm:{t:'강의 알림',s:'내 시간표 직접 입력'},
+  alarm:{t:'강의 알림',s:'캡처로 불러오거나 직접 입력'},
   schedule:{t:'학사일정',s:'2026학년도 학사일정'},
   rules:{t:'교칙 안내',s:'카테고리별 규정 정리'},
 };
@@ -622,6 +631,64 @@ async function testAlarm(){
   const c=classes.find(x=>x.on)||{n:'테스트 강의',start:'--:--',room:'미래융복합관'};
   setStatus('⏱️ 5초 뒤에 테스트 알림이 와요… (알림 켜기를 누르면 앱을 닫아도 오는지 테스트할 수 있어요)');
   setTimeout(()=>notify(`[테스트] ${c.n} ${alarmMin}분 전`,classMsg(c)),5000);
+}
+
+// ── 캡처로 시간표 불러오기 (AI 인식) ──────────────────────────
+let ttPending=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ttMsg(html){document.getElementById('ttResult').innerHTML=html;}
+// 업로드 전에 이미지를 줄여서 보낸다 (긴 변 1568px, JPEG) → 빠르고 요금도 적게
+function shrinkImage(file){
+  return new Promise((ok,fail)=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const k=Math.min(1,1568/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+      const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      ok({mediaType:'image/jpeg',data:c.toDataURL('image/jpeg',0.85).split(',')[1]});
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);fail(new Error('이미지를 열 수 없어요'));};
+    img.src=url;
+  });
+}
+async function importTimetable(fileList){
+  const files=[...(fileList||[])].filter(f=>f.type.startsWith('image/')).slice(0,3);
+  document.getElementById('ttFile').value='';
+  if(!files.length)return;
+  if(location.protocol==='file:'){ttMsg('<p style="font-size:11px;color:#C62828">⚠️ 배포된 사이트에서만 쓸 수 있어요.</p>');return;}
+  ttMsg('<p style="font-size:11px;color:#1565C0">⏳ AI가 시간표를 읽고 있어요… (10초 정도)</p>');
+  try{
+    const images=await Promise.all(files.map(shrinkImage));
+    const r=await fetch('/api/parse-timetable',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({images})});
+    const text=await r.text();
+    let data;try{data=JSON.parse(text.trim());}catch(e){throw new Error('서버 응답을 읽지 못했어요 ('+r.status+')');}
+    if(data.error)throw new Error(data.error);
+    ttPending=data.classes.map((c,i)=>({...c,_sel:true,_i:i}));
+    renderImport(data.unscheduled||[]);
+  }catch(e){ttMsg(`<p style="font-size:11px;color:#C62828">⚠️ ${esc(e.message)}</p>`);}
+}
+function renderImport(unscheduled){
+  const rows=ttPending.map(c=>`<label class="tt-row"><input type="checkbox" ${c._sel?'checked':''} onchange="ttPending[${c._i}]._sel=this.checked">
+    <div><div class="cn">${esc(c.n)}</div><div class="tr">${esc(c.dayStr)} ${esc(c.start)}~${esc(c.end)}${c.room?' · '+esc(c.room):''}</div></div></label>`).join('');
+  const un=unscheduled.length?`<p style="font-size:10px;color:#888;margin-top:6px">시간표 없는 과목(온라인 등)은 제외했어요: ${unscheduled.map(esc).join(', ')}</p>`:'';
+  ttMsg(`<p style="font-size:12px;font-weight:500;color:#333;margin-bottom:2px">✅ 강의 ${ttPending.length}개를 찾았어요. 확인해주세요.</p>
+    ${rows}${un}
+    <div class="tt-opt"><label><input type="radio" name="ttMode" value="replace" checked> 기존 시간표 지우고 바꾸기</label><label><input type="radio" name="ttMode" value="add"> 기존에 추가</label></div>
+    <div style="display:flex;gap:6px"><button class="btn-add" style="flex:1" onclick="applyImport()">시간표에 적용</button>
+    <button class="btn-add" style="flex:1;background:#fff;color:#888;border:1px solid #ddd" onclick="ttMsg('')">취소</button></div>`);
+}
+function applyImport(){
+  const picked=ttPending.filter(c=>c._sel);
+  if(!picked.length){showToast('선택한 강의가 없어요','불러올 강의를 체크해주세요');return;}
+  const mode=(document.querySelector('input[name=ttMode]:checked')||{}).value||'replace';
+  const base=Date.now();
+  const fresh=picked.map((c,i)=>({n:c.n,days:[...c.days],dayStr:c.dayStr,start:c.start,end:c.end,room:c.room||'',on:true,id:base+i}));
+  if(mode==='replace')classes=fresh;
+  else fresh.forEach(c=>{if(!classes.some(x=>x.n===c.n&&x.dayStr===c.dayStr&&x.start===c.start))classes.push(c);});
+  saveClasses();renderClasses();updateNextClass();if(curView==='table')renderTimetable();
+  ttMsg('');ttPending=[];
+  showToast('시간표를 불러왔어요',`강의 ${fresh.length}개 ${mode==='replace'?'로 바꿨어요':'를 추가했어요'}`);
 }
 
 // ── 폰 캘린더로 내보내기 (.ics) ───────────────────────────────
