@@ -4,7 +4,7 @@ import webpush from 'web-push';
 import { createHash } from 'node:crypto';
 
 export const subsStore = () => getStore('push-subscriptions');
-const configStore = () => getStore('push-config');
+export const configStore = () => getStore('push-config');
 
 export const subKey = (endpoint) => createHash('sha256').update(String(endpoint)).digest('hex');
 

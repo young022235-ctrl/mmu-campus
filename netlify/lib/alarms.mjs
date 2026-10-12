@@ -33,8 +33,9 @@ export function dueAlarms(record, date = new Date()) {
     if (!c || !c.on || !Array.isArray(c.days) || !c.days.includes(day) || !c.start) continue;
     const left = toMin(c.start) - nowMin;
     const key = `${dateKey}|${c.id}`;
-    // 검사 간격(5분) 안에 알림 시점이 들어오면 발송. 이미 보낸 건 건너뜀.
-    if (left > 0 && left <= alarmMin && left > alarmMin - CHECK_INTERVAL_MIN && !sent[key]) {
+    // 알림 시간 안으로 들어온 강의는 (아직 안 보냈으면) 바로 발송.
+    // 늦게 등록해서 알림 시점을 지났더라도 수업 시작 전이면 "N분 전"으로 보낸다.
+    if (left > 0 && left <= alarmMin && !sent[key]) {
       out.push({
         key,
         payload: {
@@ -46,6 +47,23 @@ export function dueAlarms(record, date = new Date()) {
     }
   }
   return out;
+}
+
+// 오늘 남은 강의 중 다음 알림 (상태 확인용)
+export function nextAlarm(record, date = new Date()) {
+  const { day, nowMin, dateKey } = kstNow(date);
+  const alarmMin = Number(record.alarmMin) || 10;
+  let best = null;
+  for (const c of record.classes || []) {
+    if (!c || !c.on || !Array.isArray(c.days) || !c.days.includes(day) || !c.start) continue;
+    const start = toMin(c.start);
+    if (start <= nowMin || (record.sent || {})[`${dateKey}|${c.id}`]) continue;
+    const at = Math.max(start - alarmMin, nowMin);
+    if (!best || at < best.atMin) best = { atMin: at, name: c.n, start: c.start };
+  }
+  if (!best) return null;
+  const hh = String(Math.floor(best.atMin / 60)).padStart(2, '0'), mm = String(best.atMin % 60).padStart(2, '0');
+  return { name: best.name, start: best.start, at: `${hh}:${mm}` };
 }
 
 // 오늘이 아닌 발송 기록은 지워서 기록이 계속 커지지 않게 한다.

@@ -188,6 +188,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
           <button class="btn-add" style="width:100%;margin-top:6px;background:#fff;color:#2E7D32;border:1px solid #2E7D32" onclick="exportICS()">📅 폰 캘린더에 추가 (앱 없이도 알림)</button>
           <p id="alarmStatus" style="font-size:10px;color:#888;margin-top:6px;line-height:1.5"></p>
+          <p id="serverStatus" style="font-size:10px;color:#888;margin-top:4px;line-height:1.5;display:none"></p>
         </div>
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -566,8 +567,25 @@ let syncTimer=null;
 function syncServer(){ // 시간표·알림시간이 바뀌면 서버에도 반영
   if(!pushSub)return;
   clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>postJSON('/api/subscribe',{subscription:pushSub.toJSON(),classes,alarmMin}).catch(()=>{}),800);
+  syncTimer=setTimeout(()=>postJSON('/api/subscribe',{subscription:pushSub.toJSON(),classes,alarmMin}).then(refreshServerStatus).catch(()=>{}),800);
 }
+// 서버 알림 상태: 서버가 5분마다 잘 확인하고 있는지, 다음 알림은 언제인지
+async function refreshServerStatus(){
+  const el=document.getElementById('serverStatus');
+  if(!pushSub){el.style.display='none';return;}
+  el.style.display='';
+  try{
+    const st=await postJSON('/api/alarm-status',{endpoint:pushSub.endpoint});
+    if(!st.registered){el.textContent='⚠️ 서버에 등록돼 있지 않아요 · 다시 등록하는 중…';syncServer();return;}
+    const lr=st.lastRun;
+    const run=!lr?'⏳ 서버 자동 확인 기록이 아직 없어요 (배포 후 5분 안에 시작)'
+      :lr.minutesAgo>12?`⚠️ 서버 자동 확인이 ${lr.minutesAgo}분째 멈춰 있어요`
+      :`🛰️ 서버가 ${lr.minutesAgo<1?'방금':lr.minutesAgo+'분 전'} 확인함`;
+    const nx=st.next?` · 다음 알림 ${st.next.at} (${st.next.name})`:' · 오늘 남은 알림 없음';
+    el.textContent=`${run} · 강의 ${st.classes}개 등록${nx}`;
+  }catch(e){el.textContent='서버 상태를 불러오지 못했어요';}
+}
+setInterval(()=>{if(document.visibilityState==='visible')refreshServerStatus();},60000);
 
 async function enableAlarm(){
   if(pushSub){refreshStatus();return;}
@@ -583,6 +601,7 @@ async function enableAlarm(){
     const {publicKey}=await (await fetch('/api/vapid')).json();
     pushSub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(publicKey)});
     await postJSON('/api/subscribe',{subscription:pushSub.toJSON(),classes,alarmMin});
+    refreshServerStatus();
   }catch(e){
     pushSub=null;
     setStatus('⚠️ 서버 알림 연결 실패 · 앱이 열려 있을 때만 알려드려요 ('+e.message+')');return;
