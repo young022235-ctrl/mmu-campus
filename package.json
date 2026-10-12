@@ -1,0 +1,10 @@
+{
+  "name": "mmu-campus-helper",
+  "private": true,
+  "type": "module",
+  "description": "목포해양대 캠퍼스 도우미 (PWA + 강의 알림 웹 푸시)",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "web-push": "^3.6.7"
+  }
+}

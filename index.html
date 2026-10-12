@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>목포해양대 캠퍼스 도우미</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1565C0">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="캠퍼스 도우미">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;display:flex;justify-content:center;padding:1.5rem}
+.phone-frame{width:360px;border:2px solid #ddd;border-radius:36px;overflow:hidden;background:#fff}
+.status-bar{background:#1565C0;padding:10px 20px 6px;display:flex;justify-content:space-between}
+.status-bar span{color:#fff;font-size:11px;font-weight:500}
+.header{background:#1565C0;padding:12px 18px 14px;color:#fff}
+.header h1{font-size:16px;font-weight:500;margin-bottom:2px}
+.header p{font-size:11px;opacity:.8}
+.content{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:520px;max-height:520px;overflow-y:auto;background:#f0f4f8}
+.card{background:#fff;border-radius:12px;border:.5px solid #e0e0e0;padding:12px}
+.card-title{font-size:12px;font-weight:500;color:#666;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.card-title i{font-size:14px;color:#1565C0}
+.tab-bar{display:flex;border-radius:8px;overflow:hidden;border:.5px solid #e0e0e0;margin-bottom:6px}
+.tab-btn{flex:1;padding:6px 0;font-size:11px;font-weight:500;background:#fff;color:#666;border:none;cursor:pointer}
+.tab-btn.active{background:#1565C0;color:#fff}
+.bottom-nav{background:#fff;border-top:.5px solid #e0e0e0;display:flex;padding:6px 0 10px}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:3px 0}
+.nav-item i{font-size:15px;color:#999}
+.nav-item span{font-size:9px;color:#999}
+.nav-item.active i,.nav-item.active span{color:#1565C0}
+.tab-screen{display:none;flex-direction:column;gap:10px}
+.tab-screen.visible{display:flex}
+.alarm-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
+.alarm-item:last-child{border-bottom:none}
+.cn{font-weight:500;color:#333}
+.tr{font-size:10px;color:#888;margin-top:1px}
+.toggle{width:34px;height:18px;border-radius:9px;position:relative;cursor:pointer;flex-shrink:0}
+.toggle.on{background:#1565C0}.toggle.off{background:#ccc}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
+.btn-del{background:none;border:none;cursor:pointer;color:#999;font-size:13px}
+.add-form{background:#f5f5f5;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:7px}
+.form-row{display:flex;flex-direction:column;gap:2px}
+.form-row label{font-size:10px;color:#888}
+.form-row input{font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;outline:none}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.btn-add{background:#1565C0;color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:500;cursor:pointer}
+.day-chip{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;background:#E6F1FB;color:#0C447C;margin:2px;cursor:pointer;border:1.5px solid transparent}
+.day-chip.sel{background:#1565C0;color:#fff}
+.rule-item{padding:6px 0;border-bottom:.5px solid #f0f0f0;font-size:12px;display:flex;gap:7px}
+.rule-item:last-child{border-bottom:none}
+.rule-badge{font-size:10px;padding:2px 6px;border-radius:10px;white-space:nowrap;font-weight:500;height:fit-content}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.badge-amber{background:#FAEEDA;color:#633806}
+.badge-red{background:#FCEBEB;color:#791F1F}
+.badge-green{background:#EAF3DE;color:#27500A}
+.menu-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
+.menu-row:last-child{border-bottom:none}
+.next-class{background:#1565C0;border-radius:12px;padding:12px;color:#fff}
+.nc-label{font-size:10px;opacity:.75;margin-bottom:3px}
+.nc-course{font-size:15px;font-weight:500;margin-bottom:5px}
+.nc-meta{display:flex;gap:10px;font-size:11px;opacity:.85}
+.nc-meta span{display:flex;align-items:center;gap:3px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav-btn{width:30px;height:30px;border-radius:8px;border:.5px solid #ddd;background:#f5f5f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:#333}
+.cal-month{font-size:14px;font-weight:500;color:#333}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px}
+.cal-dow span{font-size:10px;font-weight:500;padding:2px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cal-cell{text-align:center;padding:3px 1px;border-radius:5px;cursor:pointer;min-height:32px}
+.cal-cell:hover{background:#f0f0f0}
+.cal-num{font-size:11px;line-height:1.6}
+.cal-dots{display:flex;justify-content:center;gap:2px;min-height:5px}
+.cal-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+.cal-detail-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
+.cal-detail-item:last-child{border-bottom:none}
+.tip{font-size:11px;color:#888;background:#f5f5f5;border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:5px}
+.tip i{font-size:13px;color:#1565C0}
+.empty-state{text-align:center;padding:1.5rem 0;color:#888;font-size:12px}
+.empty-state i{font-size:28px;display:block;margin-bottom:6px;opacity:.4}
+.ic{font-style:normal;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.toast{position:fixed;left:50%;top:24px;transform:translate(-50%,calc(-100% - 40px));visibility:hidden;width:320px;max-width:calc(100% - 32px);background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;transition:transform .35s;z-index:99}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+.toast b{display:block;font-size:13px;color:#1565C0;margin-bottom:2px}
+.toast span{font-size:12px;color:#333}
+.nav-item i{filter:grayscale(1);opacity:.55}
+.nav-item.active i{filter:none;opacity:1}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar">
+    <span id="statusTime">9:41</span><span>목포해양대</span><span>100%</span>
+  </div>
+  <div>
+    <div class="header">
+      <h1 id="hTitle">캠퍼스 도우미</h1>
+      <p id="hSub"></p>
+    </div>
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="tab-screen visible" id="scHome">
+        <div class="next-class">
+          <p class="nc-label"><i class="ic" style="font-size:11px">🔔</i> 다음 강의</p>
+          <p class="nc-course" id="ncName">시간표를 입력해주세요</p>
+          <div class="nc-meta" id="ncMeta"><span><i class="ic">📅</i> 강의알림 탭에서 추가</span></div>
+        </div>
+        <div class="card">
+          <p class="card-title"><i class="ic">🍽️</i> 오늘 점심 학식</p>
+          <div id="homeLunch"></div>
+          <div style="margin-top:8px;font-size:11px;color:#1565C0;text-align:right;cursor:pointer" onclick="switchTab('food')">전체 메뉴 보기 →</div>
+        </div>
+        <div class="card">
+          <p class="card-title"><i class="ic">📖</i> 빠른 교칙 검색</p>
+          <input type="text" id="quickSearch" placeholder="예: 결석, 복장, 상륙" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;outline:none" oninput="quickSearchFn(this.value)">
+          <div id="quickResult" style="margin-top:6px;font-size:11px;color:#888"></div>
+        </div>
+      </div>
+
+      <!-- FOOD -->
+      <div class="tab-screen" id="scFood">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchMeal(0,this)">아침</button>
+          <button class="tab-btn" onclick="switchMeal(1,this)">점심</button>
+          <button class="tab-btn" onclick="switchMeal(2,this)">저녁</button>
+        </div>
+        <div class="card">
+          <p class="card-title" id="mealTitle"></p>
+          <div id="mealList"></div>
+          <div class="tip" style="margin-top:8px"><i class="ic">ℹ️</i> 메뉴는 학교 사정에 따라 변경될 수 있습니다.</div>
+        </div>
+      </div>
+
+      <!-- ALARM -->
+      <div class="tab-screen" id="scAlarm">
+        <div class="card">
+          <p class="card-title"><i class="ic">➕</i> 강의 추가</p>
+          <div class="add-form">
+            <div class="form-row"><label>과목명</label><input type="text" id="fName" placeholder="예: 선박운항학"></div>
+            <div class="form-row"><label>요일</label>
+              <div style="margin-top:2px">
+                <span class="day-chip" data-d="월" onclick="toggleDay(this)">월</span>
+                <span class="day-chip" data-d="화" onclick="toggleDay(this)">화</span>
+                <span class="day-chip" data-d="수" onclick="toggleDay(this)">수</span>
+                <span class="day-chip" data-d="목" onclick="toggleDay(this)">목</span>
+                <span class="day-chip" data-d="금" onclick="toggleDay(this)">금</span>
+                <span class="day-chip" data-d="토" onclick="toggleDay(this)">토</span>
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-row"><label>시작</label><input type="time" id="fStart" value="09:00"></div>
+              <div class="form-row"><label>종료</label><input type="time" id="fEnd" value="10:00"></div>
+            </div>
+            <div class="form-row"><label>강의실</label><input type="text" id="fRoom" placeholder="예: 공학관 302호"></div>
+            <button class="btn-add" onclick="addClass()">추가하기</button>
+          </div>
+        </div>
+        <div class="card">
+          <p class="card-title"><i class="ic">⚙️</i> 알림 설정</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+            <span>강의 시작 전 알림</span>
+            <span style="font-weight:500;color:#1565C0" id="alarmTime">10분 전</span>
+          </div>
+          <input type="range" min="5" max="30" value="10" step="5" id="alarmRange" style="width:100%;margin-top:6px" oninput="setAlarmMin(this.value)">
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn-add" style="flex:1" id="btnEnable" onclick="enableAlarm()">🔔 알림 켜기</button>
+            <button class="btn-add" style="flex:1;background:#fff;color:#1565C0;border:1px solid #1565C0" onclick="testAlarm()">⏱️ 테스트</button>
+          </div>
+          <button class="btn-add" style="width:100%;margin-top:6px;background:#fff;color:#2E7D32;border:1px solid #2E7D32" onclick="exportICS()">📅 폰 캘린더에 추가 (앱 없이도 알림)</button>
+          <p id="alarmStatus" style="font-size:10px;color:#888;margin-top:6px;line-height:1.5"></p>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <p class="card-title" style="margin-bottom:0"><i class="ic">📅</i> 내 시간표</p>
+            <div class="tab-bar" style="margin-bottom:0;width:auto">
+              <button class="tab-btn active" id="vList" style="padding:3px 10px;font-size:10px" onclick="switchView('list')">목록</button>
+              <button class="tab-btn" id="vTable" style="padding:3px 10px;font-size:10px" onclick="switchView('table')">시간표</button>
+            </div>
+          </div>
+          <div id="classList"></div>
+          <div id="timetable" style="display:none"></div>
+        </div>
+        <div class="tip"><i class="ic">ℹ️</i> 입력한 시간표는 이 기기에 저장됩니다.</div>
+      </div>
+
+      <!-- SCHEDULE -->
+      <div class="tab-screen" id="scSchedule">
+        <div class="card">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="moveMonth(-1)"><i class="ic">◀</i></button>
+            <span class="cal-month" id="calLabel"></span>
+            <button class="cal-nav-btn" onclick="moveMonth(1)"><i class="ic">▶</i></button>
+          </div>
+          <div class="cal-dow">
+            <span style="color:#C62828">일</span><span style="color:#888">월</span><span style="color:#888">화</span>
+            <span style="color:#888">수</span><span style="color:#888">목</span><span style="color:#888">금</span>
+            <span style="color:#1565C0">토</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="card" id="calDetail">
+          <p style="font-size:12px;color:#888;text-align:center;padding:6px 0">날짜를 선택하면 일정이 표시됩니다.</p>
+        </div>
+        <div class="card">
+          <p class="card-title" style="margin-bottom:6px"><i class="ic">🎨</i> 색상 범례</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:#1565C0;display:inline-block"></span>학사</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:#C62828;display:inline-block"></span>시험</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:#2E7D32;display:inline-block"></span>휴일</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:#E65100;display:inline-block"></span>수강</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#888"><span style="width:8px;height:8px;border-radius:50%;background:#6A1B9A;display:inline-block"></span>등록</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RULES -->
+      <div class="tab-screen" id="scRules">
+        <div class="card" style="padding:8px 12px">
+          <input type="text" id="ruleSearch" placeholder="교칙 검색..." style="width:100%;font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;outline:none" oninput="filterRules(this.value)">
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterCat('all',this)">전체</button>
+          <button class="tab-btn" onclick="filterCat('학사',this)">학사</button>
+          <button class="tab-btn" onclick="filterCat('생활',this)">생활</button>
+          <button class="tab-btn" onclick="filterCat('승선',this)">승선</button>
+          <button class="tab-btn" onclick="filterCat('과실',this)">상벌</button>
+          <button class="tab-btn" onclick="filterCat('징계',this)">징계</button>
+        </div>
+        <div class="card" id="ruleList"></div>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('home')" id="nav-home"><i class="ic">🏠</i><span>홈</span></div>
+      <div class="nav-item" onclick="switchTab('food')" id="nav-food"><i class="ic">🍽️</i><span>학식</span></div>
+      <div class="nav-item" onclick="switchTab('alarm')" id="nav-alarm"><i class="ic">🔔</i><span>강의알림</span></div>
+      <div class="nav-item" onclick="switchTab('schedule')" id="nav-schedule"><i class="ic">🗓️</i><span>학사일정</span></div>
+      <div class="nav-item" onclick="switchTab('rules')" id="nav-rules"><i class="ic">📖</i><span>교칙</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ic" style="font-size:22px">🔔</i><div><b id="toastTitle"></b><span id="toastBody"></span></div></div>
+<script>
+// ── 기본 상수 ─────────────────────────────────────────────────
+const DAYS=['일','월','화','수','목','금','토'];
+const COLORS=['#1565C0','#2E7D32','#6A1B9A','#C62828','#E65100','#00695C'];
+const catColor={학사:'#1565C0',시험:'#C62828',휴일:'#2E7D32',수강:'#E65100',등록:'#6A1B9A',휴학:'#00695C',성적:'#AD1457'};
+
+// ── 날짜 유틸 ─────────────────────────────────────────────────
+function getDateStr(){
+  const n=new Date();
+  return`${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 ${DAYS[n.getDay()]}요일`;
+}
+function getTodayKey(){
+  const n=new Date();
+  return`${n.getMonth()+1}/${n.getDate()}`;
+}
+
+// ── 학식 데이터 (승선생활관 식단표, 2026.10.11~10.17) ─────────────
+// 출처: https://www.mmu.ac.kr/main/contents/todayMenu2
+const weekMeals={
+  '10/11':{
+    breakfast:['쇠고기미역국','섭산적','통오징어양념구이','치킨너겟','궁채들깨가루볶음','김치'],
+    lunch:['닭곰탕','삼색나물','약고추장,일회용참기름','달걀부침,무생채','자몽','김치'],
+    dinner:['근대된장국','돈육볶음','온두부,건새우마늘쫑볶음','무말랭이낙지젓무침','볶음김치','초코에몽']
+  },
+  '10/12':{
+    breakfast:['애호박찌개','떡갈비','순두부계란찜','감자조림','맛김,딸기우유','김치'],
+    lunch:['콩나물국','돈가스','떡볶이,꼬지어묵','시금치나물','연근흑임자드레싱무침','요쿠르트,김치'],
+    dinner:['짬뽕국','과일소스탕수육','코다리조림','오이무침','타코야끼','참다래주스,김치']
+  },
+  '10/13':{
+    breakfast:['우유','크림치즈베이글','프랑크소시지','계란말이 또는 스크램블에그','채소스틱','토마토'],
+    lunch:['꼬리곰탕&소면','순살가자미구이','깻잎순부추무침','바삭고기만두','파인애플','김치'],
+    dinner:['라면사리부대찌개','청양마요소스치킨','어묵고추잡채','브로컬리두부무침','바이오틱스','김치']
+  },
+  '10/14':{
+    breakfast:['북어포해장국','쇠고기마늘장조림','마파가지','미나리나물무침','떠먹는요쿠르트','김치'],
+    lunch:['유부미소된장국','닭다리오븐구이','볶음우동','연어아보카도샐러드','청포도','매실차,김치'],
+    dinner:['채소된장국','차돌박이숙주볶음','고등어무조림','참나물무침','오렌지','이오,김치']
+  },
+  '10/15':{
+    breakfast:['고사리해장국','새우까스','부추오이무침','모닝연두부','A2우유','김치'],
+    lunch:['스프,마늘빵','롤까츠','방토청포도보코치니','알감자버터구이','열대과일쉐이크','김치'],
+    dinner:['두부쇠고기국','문어솥밥','치킨슈니첼','팽이버섯감자채전','콩나물볶음','곱창김&양념장,김치']
+  },
+  '10/16':{
+    breakfast:['건새우아욱된장국','동그랑땡','비엔나소세지볶음','매콤어묵조림','진미채볶음','사과,김치'],
+    lunch:['바지락칼국수','돼지고기편육','숙주나물무침','오징어튀김','도라지무생채','떠먹는요쿠르트,김치'],
+    dinner:['스지미역국','카레라이스','메추리알장조림','맛소세지무침','꽃맛살샐러드','피크닉,김치']
+  },
+  '10/17':{
+    breakfast:['전복죽','육전','꽈리고추지리멸볶음','콩나물무침','바나나','떠먹는푸딩,김치'],
+    lunch:['해물탕','팝콘치킨','오리훈제채소무침','방풍나물무침','동부묵무침','과일맛주리,김치'],
+    dinner:['건무청된장국','매운돼지갈비조림','갈치구이','쪽파부추오이무침','키위,초코파이','김치']
+  },
+};
+const mealMeta=[
+  {icon:'🌅',label:'아침 메뉴',time:'07:20 ~ 08:30'},
+  {icon:'☀️',label:'점심 메뉴',time:'11:40 ~ 13:30'},
+  {icon:'🌙',label:'저녁 메뉴',time:'17:20 ~ 18:30'}
+];
+const mealKeys=['breakfast','lunch','dinner'];
+
+// ── 학사일정 ─────────────────────────────────────────────────
+const academicSchedule=[
+  {date:'2026-03-01',text:'제1학기 개시일',cat:'학사'},{date:'2026-03-02',text:'삼일절 대체휴일',cat:'휴일'},
+  {date:'2026-03-03',text:'제1학기 개강, 입학식',cat:'학사'},{date:'2026-03-03',text:'수강신청 정정 (~3/9)',cat:'수강'},
+  {date:'2026-03-27',text:'수업일수 1/4선',cat:'학사'},{date:'2026-04-05',text:'개교기념일',cat:'휴일'},
+  {date:'2026-04-20',text:'중간시험 (~4/24)',cat:'시험'},{date:'2026-04-23',text:'수업일수 1/2선',cat:'학사'},
+  {date:'2026-05-01',text:'노동절 (휴업일)',cat:'휴일'},{date:'2026-05-05',text:'어린이날 (휴업일)',cat:'휴일'},
+  {date:'2026-05-18',text:'여름계절학기 수강신청 (~5/22)',cat:'수강'},{date:'2026-05-25',text:'부처님오신날 대체휴일',cat:'휴일'},
+  {date:'2026-05-26',text:'수업일수 3/4선, 일반휴학 신청마감',cat:'학사'},{date:'2026-06-03',text:'지방선거일 (휴업일)',cat:'휴일'},
+  {date:'2026-06-08',text:'승선실습 2학기 수강신청 (~6/12)',cat:'수강'},{date:'2026-06-16',text:'학기말시험 (~6/22)',cat:'시험'},
+  {date:'2026-06-23',text:'여름 계절학기 (~7/13)',cat:'학사'},{date:'2026-06-29',text:'성적 열람 및 이의신청 (~7/3)',cat:'성적'},
+  {date:'2026-07-01',text:'해사대학 실습학기 개시일',cat:'학사'},{date:'2026-07-17',text:'제헌절',cat:'휴일'},
+  {date:'2026-08-15',text:'광복절',cat:'휴일'},{date:'2026-08-18',text:'제2학기 수강신청 (~8/24)',cat:'수강'},
+  {date:'2026-09-01',text:'제2학기 개시일·개강',cat:'학사'},{date:'2026-09-24',text:'추석 연휴 (~9/25)',cat:'휴일'},
+  {date:'2026-10-09',text:'한글날 (휴업일)',cat:'휴일'},{date:'2026-10-26',text:'중간시험 (~10/30)',cat:'시험'},
+  {date:'2026-11-16',text:'겨울계절학기 수강신청 (~11/20)',cat:'수강'},
+  {date:'2026-12-14',text:'학기말시험 (~12/18)',cat:'시험'},{date:'2026-12-25',text:'성탄절',cat:'휴일'},
+  {date:'2027-01-01',text:'신정',cat:'휴일'},{date:'2027-02-10',text:'2027 제1학기 수강신청',cat:'수강'},
+];
+
+// ── 교칙 ─────────────────────────────────────────────────────
+const rules=[
+  {cat:'학사',badge:'badge-blue',text:'수업일수의 1/3 이상 결석 시 해당 과목 F학점 처리'},
+  {cat:'학사',badge:'badge-blue',text:'성적 이의신청은 성적 발표 후 7일 이내 교학처에 제출'},
+  {cat:'학사',badge:'badge-blue',text:'휴학은 학기 시작 후 4주 이내 신청 가능 (군휴학 제외)'},
+  {cat:'학사',badge:'badge-blue',text:'승선생활교육 학점: 두 학기당 1학점, 총 3학점 이수 필수'},
+  {cat:'생활',badge:'badge-green',text:'기숙사 통금 시간: 평일 23:00, 주말 24:00'},
+  {cat:'생활',badge:'badge-green',text:'교내 복장은 단정히 갖추되 안전모·작업복 착용 구역 준수'},
+  {cat:'생활',badge:'badge-green',text:'실습선 승선 시 음주 금지, 위반 시 즉시 하선 조치'},
+  {cat:'생활',badge:'badge-green',text:'도서관 열람실 음식물 반입 금지'},
+  {cat:'승선',badge:'badge-green',text:'아침 인원점검 06:30 실시, 5분 전까지 집합장소 집합'},
+  {cat:'승선',badge:'badge-green',text:'저녁 인원점검 이후 익일 아침 인원점검 전까지 생활관 이탈 불가'},
+  {cat:'승선',badge:'badge-green',text:'보통상륙: 08:00 이후 상륙, 당일 21:45 전까지 귀관'},
+  {cat:'승선',badge:'badge-green',text:'주말상륙: 금요일 08:00 이후 상륙, 일요일 21:45 전까지 귀관'},
+  {cat:'승선',badge:'badge-green',text:'사복 착용은 학사행정시스템 신청 후 지도관실 허가 필요'},
+  {cat:'과실',badge:'badge-red',text:'[50점·징계] 학내 절도, 폭행·폭언, 도박, 이성 생활구역 출입'},
+  {cat:'과실',badge:'badge-red',text:'[50점·상륙금지2주] 무단 상륙·귀관, 학내 음주·주류 반입, 지정 외 흡연'},
+  {cat:'과실',badge:'badge-amber',text:'[40점·상륙금지2주] 귀관시간 지각, 무단 냉난방·취사기구 소지'},
+  {cat:'과실',badge:'badge-amber',text:'[30점·상륙금지1주] 일과 불참, 허위보고, 무단 침실 변경, 문신'},
+  {cat:'과실',badge:'badge-amber',text:'[20점] 일과 지각, 시설물 무단 이동, 공지사항 훼손'},
+  {cat:'과실',badge:'badge-amber',text:'[10점] 침실 정리정돈 불량, 용모·복장 불량, 증빙서류 미제출'},
+  {cat:'과실',badge:'badge-blue',text:'[선행 10점] 지도관실 업무 협조, 헌혈증 제출, 봉사활동'},
+  {cat:'징계',badge:'badge-red',text:'부정행위(시험 부정 등) 적발 시 해당 학기 전 과목 F학점'},
+  {cat:'징계',badge:'badge-red',text:'[퇴관] 1회 50점 과실 시 지도위원회 결정으로 1주 이상 퇴관'},
+  {cat:'징계',badge:'badge-amber',text:'무단 실습 이탈 시 경고 처분, 3회 누적 시 정학'},
+];
+
+const quickData=[
+  {q:'결석',a:'수업일수 1/3 이상 결석 시 F학점 처리됩니다.'},
+  {q:'휴학',a:'학기 시작 후 4주 이내에 교학처에 신청하세요.'},
+  {q:'통금',a:'기숙사 통금: 평일 23:00, 주말 24:00입니다.'},
+  {q:'상륙',a:'보통상륙 21:45, 주말상륙 일요일 21:45까지 귀관'},
+  {q:'부정',a:'시험 부정행위 시 해당 학기 전 과목 F학점입니다.'},
+];
+
+// ── 시간표 기본 데이터 ────────────────────────────────────────
+// 내가 고친 시간표는 이 기기에 저장되고, 없으면 아래 기본 시간표를 쓴다.
+function loadClasses(){try{const v=JSON.parse(localStorage.getItem('classes')||'null');return Array.isArray(v)?v:null;}catch(e){return null;}}
+function saveClasses(){try{localStorage.setItem('classes',JSON.stringify(classes));}catch(e){}if(typeof syncServer==='function')syncServer();}
+const pToTime=p=>{const s=9*60+(p-1)*60;return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`};
+const pToEnd=p=>{const e=9*60+p*60;return`${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`};
+
+let classes=loadClasses()||[
+  {n:'갑판기기와하역제어',days:['화'],dayStr:'화',start:pToTime(1),end:pToEnd(2),room:'미래융복합관 9109',on:true,id:1},
+  {n:'선박자동화및네트워크',days:['수'],dayStr:'수',start:pToTime(1),end:pToEnd(3),room:'미래융복합관 9117',on:true,id:2},
+  {n:'선체구조및복원성',days:['목'],dayStr:'목',start:pToTime(1),end:pToEnd(2),room:'미래융복합관 9108',on:true,id:3},
+  {n:'제어공학',days:['화'],dayStr:'화',start:pToTime(3),end:pToEnd(3),room:'미래융복합관 9110',on:true,id:4},
+  {n:'금속재료공학',days:['금'],dayStr:'금',start:pToTime(5),end:pToEnd(5),room:'미래융복합관 9113',on:true,id:5},
+  {n:'캡스톤디자인II',days:['화'],dayStr:'화',start:pToTime(6),end:pToEnd(8),room:'글로벌창의융합관 8103',on:true,id:6},
+  {n:'금속재료공학',days:['수'],dayStr:'수',start:pToTime(6),end:pToEnd(7),room:'미래융복합관 9112',on:true,id:7},
+  {n:'외연기관',days:['금'],dayStr:'금',start:pToTime(6),end:pToEnd(7),room:'미래융복합관 9111',on:true,id:8},
+  {n:'제어공학',days:['월'],dayStr:'월',start:pToTime(7),end:pToEnd(8),room:'미래융복합관 9114',on:true,id:9},
+];
+
+// ── 탭 전환 ──────────────────────────────────────────────────
+const TABS=['home','food','alarm','schedule','rules'];
+const hData={
+  home:{t:'캠퍼스 도우미'},
+  food:{t:'학식 메뉴',s:'승선생활관 식당'},
+  alarm:{t:'강의 알림',s:'내 시간표 직접 입력'},
+  schedule:{t:'학사일정',s:'2026학년도 학사일정'},
+  rules:{t:'교칙 안내',s:'카테고리별 규정 정리'},
+};
+function switchTab(tab){
+  TABS.forEach(t=>{
+    document.getElementById('sc'+t[0].toUpperCase()+t.slice(1)).classList.toggle('visible',t===tab);
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+  });
+  document.getElementById('hTitle').textContent=hData[tab].t;
+  document.getElementById('hSub').textContent=tab==='home'?getDateStr():(hData[tab].s||'');
+}
+
+// ── 학식 ─────────────────────────────────────────────────────
+function renderMeal(idx=0){
+  const m=mealMeta[idx];
+  document.getElementById('mealTitle').innerHTML=`<i class="ic">${m.icon}</i> ${m.label} <span style="font-size:10px;color:#888;font-weight:400">${m.time}</span>`;
+  const td=weekMeals[getTodayKey()];
+  const items=td?td[mealKeys[idx]]:null;
+  document.getElementById('mealList').innerHTML=items
+    ?items.map(n=>`<div class="menu-row"><span>${n}</span></div>`).join('')
+    :`<p style="font-size:12px;color:#888;text-align:center;padding:1rem">오늘(${getTodayKey()}) 메뉴 정보가 없습니다.</p>`;
+}
+function switchMeal(idx,btn){
+  document.querySelectorAll('#scFood .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderMeal(idx);
+}
+function renderHomeLunch(){
+  const td=weekMeals[getTodayKey()];
+  const el=document.getElementById('homeLunch');
+  if(!td){el.innerHTML=`<p style="font-size:12px;color:#888">오늘(${getTodayKey()}) 메뉴 정보가 없습니다.</p>`;return;}
+  el.innerHTML=td.lunch.slice(0,3).map(n=>`<div class="menu-row"><span>${n}</span></div>`).join('')
+    +(td.lunch.length>3?`<div style="font-size:10px;color:#888;margin-top:3px">외 ${td.lunch.length-3}개</div>`:'');
+}
+
+// ── 강의알림 ─────────────────────────────────────────────────
+let selectedDays=[],curView='list';
+function toggleDay(el){const d=el.dataset.d;if(selectedDays.includes(d)){selectedDays=selectedDays.filter(x=>x!==d);el.classList.remove('sel');}else{selectedDays.push(d);el.classList.add('sel');}}
+function addClass(){
+  const name=document.getElementById('fName').value.trim();
+  const start=document.getElementById('fStart').value;
+  const end=document.getElementById('fEnd').value;
+  const room=document.getElementById('fRoom').value.trim();
+  if(!name){alert('과목명을 입력해주세요.');return;}
+  if(!selectedDays.length){alert('요일을 선택해주세요.');return;}
+  const dayStr=selectedDays.sort((a,b)=>DAYS.indexOf(a)-DAYS.indexOf(b)).join('·');
+  classes.push({n:name,days:[...selectedDays],dayStr,start,end,room,on:true,id:Date.now()});
+  document.getElementById('fName').value='';document.getElementById('fRoom').value='';
+  document.getElementById('fStart').value='09:00';document.getElementById('fEnd').value='10:00';
+  selectedDays=[];document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('sel'));
+  saveClasses();renderClasses();updateNextClass();
+}
+function deleteClass(id){classes=classes.filter(c=>c.id!==id);saveClasses();renderClasses();updateNextClass();}
+function toggleClass(id){const c=classes.find(x=>x.id===id);if(c)c.on=!c.on;saveClasses();renderClasses();}
+function renderClasses(){
+  const el=document.getElementById('classList');
+  if(!classes.length){el.innerHTML=`<div class="empty-state"><i class="ic">📭</i>강의를 추가해주세요.</div>`;return;}
+  el.innerHTML=classes.map(c=>`<div class="alarm-item">
+    <div><div class="cn">${c.n}</div><div class="tr">${c.dayStr} ${c.start}~${c.end}${c.room?' · '+c.room:''}</div></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="toggle ${c.on?'on':'off'}" onclick="toggleClass(${c.id})"></div>
+      <button class="btn-del" onclick="deleteClass(${c.id})"><i class="ic">🗑️</i></button>
+    </div>
+  </div>`).join('');
+}
+function switchView(v){
+  curView=v;
+  document.getElementById('vList').classList.toggle('active',v==='list');
+  document.getElementById('vTable').classList.toggle('active',v==='table');
+  document.getElementById('classList').style.display=v==='list'?'':'none';
+  document.getElementById('timetable').style.display=v==='table'?'':'none';
+  if(v==='table')renderTimetable();
+}
+function renderTimetable(){
+  const el=document.getElementById('timetable');
+  if(!classes.length){el.innerHTML=`<div class="empty-state"><i class="ic">📭</i>강의를 먼저 추가해주세요.</div>`;return;}
+  const days=['월','화','수','목','금'];
+  const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m;};
+  let minH=9,maxH=18;
+  classes.forEach(c=>{minH=Math.min(minH,Math.floor(toMin(c.start)/60));maxH=Math.max(maxH,Math.ceil(toMin(c.end)/60));});
+  const slotH=32;
+  const colorMap={};classes.forEach((c,i)=>colorMap[c.id]=COLORS[i%COLORS.length]);
+  let html=`<div style="display:grid;grid-template-columns:24px repeat(5,1fr);gap:1px;font-size:9px;font-weight:500;color:#888;margin-bottom:2px"><div></div>${days.map(d=>`<div style="text-align:center">${d}</div>`).join('')}</div>`;
+  html+=`<div style="display:grid;grid-template-columns:24px repeat(5,1fr);gap:1px">`;
+  for(let h=minH;h<=maxH;h++){
+    html+=`<div style="font-size:9px;color:#888;text-align:right;padding-right:3px;height:${slotH}px;line-height:${slotH}px">${h}</div>`;
+    for(let d=0;d<5;d++){
+      html+=`<div style="height:${slotH}px;border-top:.5px solid #eee;position:relative">`;
+      classes.forEach(c=>{
+        if(!c.days.includes(days[d]))return;
+        const s=toMin(c.start),e=toMin(c.end),bs=h*60,be=(h+1)*60;
+        if(s>=be||e<=bs)return;
+        const top=Math.max(0,(s-bs)/60*slotH);
+        const height=(Math.min(e,be)-Math.max(s,bs))/60*slotH;
+        const showLabel=s>=bs&&s<be;
+        html+=`<div style="position:absolute;top:${top}px;left:1px;right:1px;height:${height}px;background:${colorMap[c.id]};border-radius:3px;overflow:hidden;opacity:.9">${showLabel?`<div style="font-size:8px;color:#fff;font-weight:500;padding:1px 2px">${c.n}</div>`:''}</div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+// ── 홈: 다음 강의 ─────────────────────────────────────────────
+function updateNextClass(){
+  const now=new Date();const todayDay=DAYS[now.getDay()];const nowMin=now.getHours()*60+now.getMinutes();
+  const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m;};
+  let next=null;
+  for(const c of classes){if(!c.on)continue;if(c.days.includes(todayDay)&&toMin(c.start)>nowMin){const diff=toMin(c.start)-nowMin;if(!next||diff<next.diff)next={...c,diff};}}
+  if(!next){for(let i=1;i<=6;i++){const di=DAYS[(now.getDay()+i)%7];for(const c of classes){if(!c.on)continue;if(c.days.includes(di)){if(!next)next={...c,diff:i*1440+toMin(c.start)};}};if(next)break;}}
+  const ne=document.getElementById('ncName'),me=document.getElementById('ncMeta');
+  if(!next){ne.textContent=classes.length?'이번 주 강의 없음':'시간표를 입력해주세요';me.innerHTML=`<span><i class="ic">📅</i> 강의알림 탭에서 추가</span>`;return;}
+  const dH=Math.floor(next.diff/60),dM=next.diff%60;
+  const ds=next.diff<60?`${next.diff}분 후`:dH>0&&dM>0?`${dH}시간 ${dM}분 후`:`${dH}시간 후`;
+  ne.textContent=next.n;
+  me.innerHTML=`<span><i class="ic">🕒</i> ${next.start}~${next.end} (${ds})</span>${next.room?`<span><i class="ic">📍</i> ${next.room}</span>`:''}`;
+}
+
+// ── 강의 시작 전 알림 ─────────────────────────────────────────
+// 1) 서버 푸시(앱을 닫아도 옴)  2) 앱 안 알림(앱이 열려 있을 때)  3) 폰 캘린더 내보내기
+let alarmMin=10;
+let pushSub=null; // 서버 푸시 구독 정보 (켜져 있으면 값이 있음)
+const firedAlarms=new Set();
+const toMinutes=t=>{const[h,m]=t.split(':').map(Number);return h*60+m;};
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const canPush=('serviceWorker' in navigator)&&('PushManager' in window)&&(location.protocol==='https:'||location.hostname==='localhost');
+
+function setAlarmMin(v){
+  alarmMin=Number(v);
+  document.getElementById('alarmTime').textContent=v+'분 전';
+  try{localStorage.setItem('alarmMin',v);}catch(e){}
+  syncServer();refreshStatus();
+}
+function setStatus(msg){document.getElementById('alarmStatus').textContent=msg;}
+function permState(){return ('Notification' in window)?Notification.permission:'unsupported';}
+function refreshStatus(){
+  const btn=document.getElementById('btnEnable');
+  if(pushSub){btn.textContent='✅ 알림 켜짐';setStatus(`✅ 서버 알림 켜짐 · 앱을 닫아도 강의 ${alarmMin}분 전에 알려드려요`);return;}
+  btn.textContent='🔔 알림 켜기';
+  const p=permState();
+  if(isIOS&&!isStandalone){setStatus('📱 아이폰은 Safari 공유 버튼 → "홈 화면에 추가" 후, 홈 화면 아이콘으로 열어서 알림 켜기를 눌러주세요');return;}
+  setStatus(p==='denied'?'⛔ 알림이 차단됨 · 브라우저 사이트 설정에서 알림을 허용해주세요'
+    :p==='granted'?`🔔 앱이 열려 있을 때 강의 ${alarmMin}분 전에 알려드려요`
+    :'알림 켜기를 누르면 앱을 닫아도 강의 전에 알림이 와요');
+}
+
+// 서비스워커 등록 (오프라인 + 푸시 수신)
+async function registerSW(){
+  if(!('serviceWorker' in navigator)||location.protocol==='file:')return null;
+  try{return await navigator.serviceWorker.register('/service-worker.js');}catch(e){return null;}
+}
+const b64ToU8=s=>{const p='='.repeat((4-s.length%4)%4);const b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...b].map(c=>c.charCodeAt(0)));};
+
+async function postJSON(url,data,method='POST'){
+  const r=await fetch(url,{method,headers:{'content-type':'application/json'},body:JSON.stringify(data)});
+  if(!r.ok)throw new Error(url+' '+r.status);
+  return r.json();
+}
+let syncTimer=null;
+function syncServer(){ // 시간표·알림시간이 바뀌면 서버에도 반영
+  if(!pushSub)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>postJSON('/api/subscribe',{subscription:pushSub.toJSON(),classes,alarmMin}).catch(()=>{}),800);
+}
+
+async function enableAlarm(){
+  if(pushSub){refreshStatus();return;}
+  if(!('Notification' in window)){setStatus('ℹ️ 이 브라우저는 알림을 지원하지 않아요. 아래 "폰 캘린더에 추가"를 이용해주세요');return;}
+  if(isIOS&&!isStandalone){refreshStatus();return;}
+  let p;try{p=await Notification.requestPermission();}catch(e){p=permState();}
+  if(p!=='granted'){refreshStatus();return;}
+  if(!canPush){setStatus('🔔 앱이 열려 있을 때만 알려드려요 (이 환경은 서버 알림 미지원)');return;}
+  setStatus('⏳ 서버 알림 연결 중…');
+  try{
+    const reg=await registerSW()||await navigator.serviceWorker.ready;
+    await navigator.serviceWorker.ready;
+    const {publicKey}=await (await fetch('/api/vapid')).json();
+    pushSub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(publicKey)});
+    await postJSON('/api/subscribe',{subscription:pushSub.toJSON(),classes,alarmMin});
+  }catch(e){
+    pushSub=null;
+    setStatus('⚠️ 서버 알림 연결 실패 · 앱이 열려 있을 때만 알려드려요 ('+e.message+')');return;
+  }
+  refreshStatus();
+}
+
+function showToast(title,body){
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastBody').textContent=body;
+  const t=document.getElementById('toast');t.classList.add('show');
+  clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.classList.remove('show'),6000);
+}
+async function notify(title,body,system=true){
+  showToast(title,body); // 앱 안 알림창 (항상)
+  if(!system||permState()!=='granted')return;
+  try{ // 휴대폰(안드로이드 크롬·설치된 PWA)은 서비스워커 경유가 필요
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+    if(reg){reg.showNotification(title,{body,tag:title,renotify:true,icon:'/icon-192.png'});return;}
+  }catch(e){}
+  try{new Notification(title,{body});}catch(e){}
+}
+function classMsg(c){return`${c.start} 시작${c.room?' · '+c.room:''}`;}
+function checkAlarms(){
+  const now=new Date(),today=DAYS[now.getDay()],nowMin=now.getHours()*60+now.getMinutes();
+  const dateKey=now.toDateString();
+  classes.forEach(c=>{
+    if(!c.on||!c.days.includes(today))return;
+    const left=toMinutes(c.start)-nowMin;
+    const key=dateKey+'|'+c.id;
+    if(left>0&&left<=alarmMin&&!firedAlarms.has(key)){
+      firedAlarms.add(key);
+      // 서버 알림이 켜져 있으면 휴대폰 알림은 서버가 보내므로, 여기선 앱 안 알림창만
+      notify(`${c.n} ${left}분 전`,classMsg(c),!pushSub);
+    }
+  });
+}
+async function testAlarm(){
+  if(pushSub){
+    setStatus('📤 6초 뒤 서버에서 알림을 보내요 · 지금 앱을 완전히 닫아보세요!');
+    try{const r=await postJSON('/api/test-push',{endpoint:pushSub.endpoint});
+      setStatus(r.result==='ok'?'✅ 서버 알림 발송 완료 · 앱을 닫은 상태에서도 왔다면 성공이에요':'⚠️ 발송 실패 ('+r.result+') · 알림 켜기를 다시 눌러주세요');
+    }catch(e){setStatus('⚠️ 서버 테스트 실패 ('+e.message+')');}
+    return;
+  }
+  const c=classes.find(x=>x.on)||{n:'테스트 강의',start:'--:--',room:'미래융복합관'};
+  setStatus('⏱️ 5초 뒤에 테스트 알림이 와요… (알림 켜기를 누르면 앱을 닫아도 오는지 테스트할 수 있어요)');
+  setTimeout(()=>notify(`[테스트] ${c.n} ${alarmMin}분 전`,classMsg(c)),5000);
+}
+
+// ── 폰 캘린더로 내보내기 (.ics) ───────────────────────────────
+// 매주 반복 일정 + N분 전 알림. 한 번 추가하면 앱을 지워도 폰 캘린더가 알려준다.
+const SEMESTER_END_UTC='20261218T145959Z'; // 2026-2학기 학기말시험 종료(12/18 23:59 KST)
+function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/[,;]/g,m=>'\\'+m).replace(/\n/g,'\\n');}
+function nextDateFor(dayIdx){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+((dayIdx-d.getDay()+7)%7));return d;}
+const ymd=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+function buildICS(){
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MMU//Campus Helper//KO','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'X-WR-CALNAME:목포해양대 시간표','X-WR-TIMEZONE:Asia/Seoul',
+    'BEGIN:VTIMEZONE','TZID:Asia/Seoul','BEGIN:STANDARD','DTSTART:19700101T000000','TZOFFSETFROM:+0900','TZOFFSETTO:+0900','TZNAME:KST','END:STANDARD','END:VTIMEZONE'];
+  let n=0;
+  classes.filter(c=>c.on).forEach(c=>c.days.forEach(day=>{
+    const d=nextDateFor(DAYS.indexOf(day));const date=ymd(d);
+    const hm=t=>t.replace(':','')+'00';
+    L.push('BEGIN:VEVENT',`UID:${c.id}-${DAYS.indexOf(day)}@mmu-campus`,`DTSTAMP:${stamp}`,
+      `DTSTART;TZID=Asia/Seoul:${date}T${hm(c.start)}`,`DTEND;TZID=Asia/Seoul:${date}T${hm(c.end)}`,
+      `RRULE:FREQ=WEEKLY;UNTIL=${SEMESTER_END_UTC}`,`SUMMARY:${icsEscape(c.n)}`,`LOCATION:${icsEscape(c.room)}`,
+      'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${icsEscape(c.n+' '+alarmMin+'분 전')}`,`TRIGGER:-PT${alarmMin}M`,'END:VALARM','END:VEVENT');
+    n++;
+  }));
+  L.push('END:VCALENDAR');
+  return {text:L.join('\r\n')+'\r\n',count:n};
+}
+function exportICS(){
+  const {text,count}=buildICS();
+  if(!count){setStatus('켜져 있는 강의가 없어요. 시간표를 먼저 추가해주세요');return;}
+  const url=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='목포해양대_시간표.ics';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  setStatus(`📅 강의 ${count}건(매주 반복, ${alarmMin}분 전 알림)을 내보냈어요 · 받은 파일을 열어 캘린더에 추가하세요`);
+}
+
+// ── 교칙 ─────────────────────────────────────────────────────
+let filteredCat='all',searchQuery='';
+function renderRules(){
+  const list=rules.filter(r=>(filteredCat==='all'||r.cat===filteredCat)&&(!searchQuery||r.text.includes(searchQuery)||r.cat.includes(searchQuery)));
+  document.getElementById('ruleList').innerHTML=list.length
+    ?list.map(r=>`<div class="rule-item"><span class="rule-badge ${r.badge}">${r.cat}</span><span style="color:#333">${r.text}</span></div>`).join('')
+    :'<p style="font-size:12px;color:#888;text-align:center;padding:1rem">검색 결과가 없습니다.</p>';
+}
+function filterCat(cat,btn){filteredCat=cat;document.querySelectorAll('#scRules .tab-bar .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderRules();}
+function filterRules(q){searchQuery=q;renderRules();}
+function quickSearchFn(v){
+  const el=document.getElementById('quickResult');
+  if(!v){el.textContent='';return;}
+  const f=quickData.find(d=>d.q.includes(v)||v.includes(d.q));
+  el.innerHTML=f?`<span style="color:#1565C0">→</span> ${f.a}`:'교칙 탭에서 검색해보세요.';
+}
+
+// ── 캘린더 ───────────────────────────────────────────────────
+const now0=new Date();
+let calYear=now0.getFullYear(),calMonth=now0.getMonth(),selDate=null;
+function renderCalendar(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('calLabel').textContent=`${calYear}년 ${mn[calMonth]}`;
+  const sm={};
+  academicSchedule.forEach(s=>{
+    const d=new Date(s.date);
+    if(d.getFullYear()===calYear&&d.getMonth()===calMonth){const k=d.getDate();if(!sm[k])sm[k]=[];sm[k].push(s);}
+  });
+  let html='';
+  for(let i=0;i<firstDay;i++)html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const td=new Date(calYear,calMonth,d);td.setHours(0,0,0,0);
+    const isToday=td.getTime()===today.getTime();
+    const isSel=selDate&&selDate.getTime()===td.getTime();
+    const dow=td.getDay();
+    const dots=sm[d]?[...new Set(sm[d].map(s=>catColor[s.cat]))].slice(0,3):[];
+    const nc=dow===0?'#C62828':dow===6?'#1565C0':'#333';
+    const bg=isSel?'#1565C0':isToday?'#E6F1FB':'transparent';
+    const tc=isSel?'#fff':nc;
+    html+=`<div class="cal-cell" onclick="selectDate(${calYear},${calMonth},${d})" style="background:${bg}">
+      <div class="cal-num" style="color:${tc};font-weight:${isToday||isSel?'500':'400'}">${d}</div>
+      <div class="cal-dots">${dots.map(c=>`<span class="cal-dot" style="background:${isSel?'rgba(255,255,255,.8)':c}"></span>`).join('')}</div>
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+  if(selDate)showDetail(selDate);
+}
+function selectDate(y,m,d){selDate=new Date(y,m,d);renderCalendar();}
+function showDetail(date){
+  const k=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  const items=academicSchedule.filter(s=>s.date===k);
+  const el=document.getElementById('calDetail');
+  const ds=`${date.getMonth()+1}월 ${date.getDate()}일`;
+  el.innerHTML=`<p style="font-size:12px;font-weight:500;color:#333;margin-bottom:6px">${ds}</p>`+(items.length
+    ?items.map(s=>`<div class="cal-detail-item"><span style="width:8px;height:8px;border-radius:50%;background:${catColor[s.cat]};flex-shrink:0"></span><span style="font-size:12px;color:#333;flex:1">${s.text}</span><span style="font-size:10px;padding:1px 6px;border-radius:8px;background:#E6F1FB;color:#0C447C">${s.cat}</span></div>`).join('')
+    :`<p style="font-size:12px;color:#888">일정이 없습니다.</p>`);
+}
+function moveMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  selDate=null;
+  document.getElementById('calDetail').innerHTML='<p style="font-size:12px;color:#888;text-align:center;padding:6px 0">날짜를 선택하면 일정이 표시됩니다.</p>';
+  renderCalendar();
+}
+
+// ── 초기화 ───────────────────────────────────────────────────
+document.getElementById('nav-home').classList.add('active');
+
+document.getElementById('hSub').textContent=getDateStr();
+renderMeal(0);
+renderClasses();
+renderRules();
+renderCalendar();
+renderHomeLunch();
+updateNextClass();
+setInterval(updateNextClass,60000);
+try{const v=localStorage.getItem('alarmMin');if(v){document.getElementById('alarmRange').value=v;setAlarmMin(v);}}catch(e){}
+refreshStatus();
+registerSW().then(async reg=>{
+  if(!reg||!canPush)return;
+  try{const r=await navigator.serviceWorker.ready;pushSub=await r.pushManager.getSubscription();
+    if(pushSub&&permState()==='granted'){syncServer();}else pushSub=null;}catch(e){}
+  refreshStatus();
+});
+checkAlarms();
+setInterval(checkAlarms,20000);
+
+// 현재 시간 표시
+function updateClock(){
+  const n=new Date();
+  const h=String(n.getHours()).padStart(2,'0');
+  const m=String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('statusTime').textContent=`${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>
