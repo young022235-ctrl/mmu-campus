@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>목포해양대 캠퍼스 도우미</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1565C0">
@@ -14,9 +14,18 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;display:flex;justify-content:center;padding:1.5rem}
-.phone-frame{width:360px;border:2px solid #ddd;border-radius:36px;overflow:hidden;background:#fff}
-.status-bar{background:#1565C0;padding:10px 20px 6px;display:flex;justify-content:space-between}
-.status-bar span{color:#fff;font-size:11px;font-weight:500}
+.phone-frame{width:360px;height:760px;border:2px solid #ddd;border-radius:36px;overflow:hidden;background:#fff}
+.app{display:flex;flex-direction:column;height:100%}
+.app .content{flex:1;min-height:0!important;max-height:none!important}
+.bottom-nav{flex-shrink:0}
+/* 실제 휴대폰: 프레임 없이 전체 화면, 아이폰 하단 홈 바 영역 확보 */
+@media (max-width:600px){
+  body{padding:0;display:block;background:#f0f4f8}
+  .phone-frame{width:100%;height:100vh;height:100dvh;border:none;border-radius:0}
+  .header{padding-top:calc(12px + env(safe-area-inset-top))}
+  .bottom-nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .toast{top:calc(12px + env(safe-area-inset-top))}
+}
 .header{background:#1565C0;padding:12px 18px 14px;color:#fff}
 .header h1{font-size:16px;font-weight:500;margin-bottom:2px}
 .header p{font-size:11px;opacity:.8}
@@ -93,10 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 <div class="phone-frame">
-  <div class="status-bar">
-    <span id="statusTime">9:41</span><span>목포해양대</span><span>100%</span>
-  </div>
-  <div>
+  <div class="app">
     <div class="header">
       <h1 id="hTitle">캠퍼스 도우미</h1>
       <p id="hSub"></p>
@@ -743,15 +749,6 @@ registerSW().then(async reg=>{
 checkAlarms();
 setInterval(checkAlarms,20000);
 
-// 현재 시간 표시
-function updateClock(){
-  const n=new Date();
-  const h=String(n.getHours()).padStart(2,'0');
-  const m=String(n.getMinutes()).padStart(2,'0');
-  document.getElementById('statusTime').textContent=`${h}:${m}`;
-}
-updateClock();
-setInterval(updateClock,1000);
 </script>
 </body>
 </html>
