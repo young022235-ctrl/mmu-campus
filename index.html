@@ -95,6 +95,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tt-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
 .tt-row input{margin-top:2px}
 .tt-opt{display:flex;gap:12px;font-size:11px;color:#555;margin:8px 0}
+.rv-muted{font-size:11px;color:#888;line-height:1.5;display:block}
+.rv-err{font-size:11px;color:#C62828}
+.rv-chip{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid #DCE5F0;background:#F5F8FC;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:500;color:#0F2A4A;cursor:pointer;text-align:left}
+.rv-chip span{font-size:10px;font-weight:400;color:#E58A3A}
+.rv-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid #f0f0f0;cursor:pointer}
+.rv-row:last-child{border-bottom:none}
+.rv-score{font-size:12px;font-weight:600;color:#E58A3A}
+.rv-back{background:none;border:none;color:#1565C0;font-size:12px;cursor:pointer;padding:0}
+.rv-stat{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:#666}
+.rv-stat>span:first-child{width:40px}
+.rv-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;background:#F0F3F7;color:#555;margin-right:4px}
+.rv-pill.on{background:#E6F1FB;color:#0C447C;font-weight:500}
+.rv-pill.warn{background:#FCEBEB;color:#791F1F}
+.rv-card{padding:10px 0;border-bottom:.5px solid #f0f0f0}
+.rv-card:last-child{border-bottom:none}
+.rv-card.mine{background:#F7FAFE;margin:0 -12px;padding:10px 12px}
+.rv-link{background:none;border:none;font-size:11px;color:#888;cursor:pointer}
+.rv-form{display:flex;flex-direction:column;gap:6px;background:#f5f5f5;border-radius:12px;padding:10px;margin-top:8px}
+.rv-form label{font-size:10px;color:#888}
+.rv-form select,.rv-form textarea{font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;outline:none;font-family:inherit;background:#fff}
+.rv-stars{display:flex;gap:2px}
+.rv-stars button{background:none;border:none;font-size:24px;color:#ccc;cursor:pointer;padding:0 2px}
+.rv-stars button.on{color:#E58A3A}
+.rv-seg{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.rv-seg button{flex:1;padding:5px 0;font-size:11px;border:none;background:#fff;color:#666;cursor:pointer}
+.rv-seg button.on{background:#1565C0;color:#fff}
 .toast{position:fixed;left:50%;top:24px;transform:translate(-50%,calc(-100% - 40px));visibility:hidden;width:320px;max-width:calc(100% - 32px);background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;transition:transform .35s;z-index:99}
 .toast.show{transform:translate(-50%,0);visibility:visible}
 .toast b{display:block;font-size:13px;color:#1565C0;margin-bottom:2px}
@@ -250,6 +276,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="card" id="ruleList"></div>
       </div>
 
+      <!-- REVIEW -->
+      <div class="tab-screen" id="scReview">
+        <div id="rvHome" style="display:flex;flex-direction:column;gap:10px">
+          <div class="card" style="padding:8px 12px;display:flex;gap:6px">
+            <input type="text" id="rvSearch" list="rvCourses" placeholder="과목명으로 검색 (예: 전력변환시스템)" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;outline:none" onkeydown="if(event.key==='Enter')searchCourse()">
+            <datalist id="rvCourses"></datalist>
+            <button class="btn-add" style="padding:6px 12px" onclick="searchCourse()">보기</button>
+          </div>
+          <div class="card"><p class="card-title"><i class="ic">📚</i> 내 과목</p><div id="rvMine" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
+          <div class="card"><p class="card-title"><i class="ic">🔥</i> 후기 많은 과목</p><div id="rvPopular"></div></div>
+          <div class="tip"><i class="ic">ℹ️</i> 목록에 없는 과목도 검색해서 첫 후기를 남길 수 있어요.</div>
+        </div>
+        <div id="rvDetail" style="display:none;flex-direction:column;gap:10px"></div>
+      </div>
+
     </div>
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('home')" id="nav-home"><i class="ic">🏠</i><span>홈</span></div>
@@ -257,6 +298,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="nav-item" onclick="switchTab('alarm')" id="nav-alarm"><i class="ic">🔔</i><span>강의알림</span></div>
       <div class="nav-item" onclick="switchTab('schedule')" id="nav-schedule"><i class="ic">🗓️</i><span>학사일정</span></div>
       <div class="nav-item" onclick="switchTab('rules')" id="nav-rules"><i class="ic">📖</i><span>교칙</span></div>
+      <div class="nav-item" onclick="switchTab('review')" id="nav-review"><i class="ic">⭐</i><span>강의평가</span></div>
     </div>
   </div>
 </div>
@@ -399,13 +441,14 @@ let classes=loadClasses()||[
 ];
 
 // ── 탭 전환 ──────────────────────────────────────────────────
-const TABS=['home','food','alarm','schedule','rules'];
+const TABS=['home','food','alarm','schedule','rules','review'];
 const hData={
   home:{t:'캠퍼스 도우미'},
   food:{t:'학식 메뉴',s:'승선생활관 식당'},
   alarm:{t:'강의 알림',s:'캡처로 불러오거나 직접 입력'},
   schedule:{t:'학사일정',s:'2026학년도 학사일정'},
   rules:{t:'교칙 안내',s:'카테고리별 규정 정리'},
+  review:{t:'강의평가',s:'수강생 익명 후기 공유'},
 };
 function switchTab(tab){
   TABS.forEach(t=>{
@@ -414,6 +457,7 @@ function switchTab(tab){
   });
   document.getElementById('hTitle').textContent=hData[tab].t;
   document.getElementById('hSub').textContent=tab==='home'?getDateStr():(hData[tab].s||'');
+  if(tab==='review')loadReviewHome();
 }
 
 // ── 학식 ─────────────────────────────────────────────────────
@@ -811,6 +855,134 @@ function moveMonth(dir){
   selDate=null;
   document.getElementById('calDetail').innerHTML='<p style="font-size:12px;color:#888;text-align:center;padding:6px 0">날짜를 선택하면 일정이 표시됩니다.</p>';
   renderCalendar();
+}
+
+// ── 강의평가 (후기 공유) ───────────────────────────────────────
+// 로그인 없이 기기마다 무작위 ID를 만들어 "내 후기"를 구분한다 (수정·삭제 권한).
+const DEVICE_ID=(()=>{
+  let id=null;
+  try{id=localStorage.getItem('deviceId');}catch(e){}
+  if(!id||!/^[A-Za-z0-9-]{16,64}$/.test(id)){
+    id=(crypto.randomUUID?crypto.randomUUID():'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)).replace(/[^A-Za-z0-9-]/g,'');
+    try{localStorage.setItem('deviceId',id);}catch(e){}
+  }
+  return id;
+})();
+const RV_API='/api/reviews';
+let rvIndex=[],rvCur=null,rvForm={rating:0,workload:'보통',difficulty:'보통'};
+const stars=n=>'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+const rvKey=s=>String(s||'').toUpperCase().replace(/Ⅱ/g,'II').replace(/Ⅰ/g,'I').replace(/Ⅲ/g,'III').replace(/[\s·()\-_]/g,'');
+function currentSemester(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()+1>=8||n.getMonth()+1<2?2:1}`;}
+async function rvFetch(method,body,course){
+  if(location.protocol==='file:')throw new Error('배포된 사이트에서만 쓸 수 있어요.');
+  const url=RV_API+(course?'?course='+encodeURIComponent(course):'');
+  const r=await fetch(url,{method,headers:{'content-type':'application/json','x-device-id':DEVICE_ID},body:body?JSON.stringify(body):undefined});
+  const d=await r.json().catch(()=>({error:'서버 응답을 읽지 못했어요 ('+r.status+')'}));
+  if(!r.ok||d.error)throw new Error(d.error||('오류 '+r.status));
+  return d;
+}
+function rvShow(view){
+  document.getElementById('rvHome').style.display=view==='home'?'flex':'none';
+  document.getElementById('rvDetail').style.display=view==='detail'?'flex':'none';
+}
+async function loadReviewHome(){
+  rvShow('home');
+  const mineEl=document.getElementById('rvMine'),popEl=document.getElementById('rvPopular');
+  popEl.innerHTML='<p class="rv-muted">불러오는 중…</p>';
+  try{rvIndex=(await rvFetch('GET')).courses||[];}catch(e){rvIndex=[];popEl.innerHTML=`<p class="rv-err">⚠️ ${esc(e.message)}</p>`;}
+  document.getElementById('rvCourses').innerHTML=rvIndex.map(c=>`<option value="${esc(c.name)}">`).join('');
+  const info=name=>rvIndex.find(c=>rvKey(c.name)===rvKey(name));
+  const myNames=[...new Map(classes.map(c=>[rvKey(c.n),c.n])).values()];
+  mineEl.innerHTML=myNames.length?myNames.map(n=>{const i=info(n);
+    return `<button class="rv-chip" onclick="openCourse(this.dataset.c)" data-c="${esc(n)}">${esc(n)}<span>${i?`★ ${i.avg.toFixed(1)} · ${i.count}개`:'후기 없음'}</span></button>`;}).join('')
+    :'<p class="rv-muted">강의알림 탭에서 시간표를 넣으면 내 과목이 여기에 나와요.</p>';
+  if(rvIndex.length||!popEl.querySelector('.rv-err'))popEl.innerHTML=rvIndex.length?rvIndex.slice(0,30).map(c=>
+    `<div class="rv-row" onclick="openCourse(this.dataset.c)" data-c="${esc(c.name)}"><div><div class="cn">${esc(c.name)}</div><div class="tr">후기 ${c.count}개</div></div><div class="rv-score">★ ${c.avg.toFixed(1)}</div></div>`).join('')
+    :'<p class="rv-muted">아직 후기가 없어요. 첫 후기를 남겨주세요!</p>';
+}
+function searchCourse(){
+  const v=document.getElementById('rvSearch').value.trim();
+  if(v.length<2){showToast('과목명을 입력해주세요','2글자 이상 입력해주세요');return;}
+  openCourse(v);
+}
+async function openCourse(name){
+  rvShow('detail');rvCur=name;
+  const el=document.getElementById('rvDetail');
+  el.innerHTML='<div class="card"><p class="rv-muted">불러오는 중…</p></div>';
+  let d;
+  try{d=await rvFetch('GET',null,name);}catch(e){el.innerHTML=`<div class="card"><button class="rv-back" onclick="loadReviewHome()">← 목록</button><p class="rv-err">⚠️ ${esc(e.message)}</p></div>`;return;}
+  rvCur=d.course;
+  const s=d.summary,mine=d.reviews.find(r=>r.mine);
+  rvForm=mine?{rating:mine.rating,workload:mine.workload,difficulty:mine.difficulty}:{rating:0,workload:'보통',difficulty:'보통'};
+  const bar=(obj,keys)=>keys.map(k=>`<span class="rv-pill ${s.count&&obj[k]===Math.max(...keys.map(x=>obj[x]))&&obj[k]?'on':''}">${k} ${obj[k]}</span>`).join('');
+  el.innerHTML=`
+  <div class="card">
+    <button class="rv-back" onclick="loadReviewHome()">← 목록</button>
+    <p style="font-size:16px;font-weight:600;color:#0F2A4A;margin:6px 0 2px">${esc(d.course)}</p>
+    ${s.count?`<p style="font-size:13px;color:#E58A3A">${stars(s.avg)} <b style="color:#333">${s.avg.toFixed(1)}</b> <span class="rv-muted" style="display:inline">· 후기 ${s.count}개</span></p>
+    <div class="rv-stat"><span>과제량</span>${bar(s.workload,['적음','보통','많음'])}</div>
+    <div class="rv-stat"><span>난이도</span>${bar(s.difficulty,['쉬움','보통','어려움'])}</div>`:'<p class="rv-muted">아직 후기가 없어요. 첫 후기를 남겨주세요!</p>'}
+    <button class="btn-add" style="width:100%;margin-top:10px" onclick="toggleReviewForm()">${mine?'✏️ 내 후기 수정':'✍️ 후기 쓰기'}</button>
+    <div id="rvFormBox" style="display:none">${reviewFormHtml(mine)}</div>
+  </div>
+  <div class="card"><p class="card-title"><i class="ic">💬</i> 수강생 후기</p>
+    ${d.reviews.length?d.reviews.map(reviewCard).join(''):'<p class="rv-muted">아직 후기가 없어요.</p>'}
+  </div>`;
+}
+function reviewCard(r){
+  const date=(r.updatedAt||r.createdAt||'').slice(0,10).replace(/-/g,'.');
+  return `<div class="rv-card${r.mine?' mine':''}">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="color:#E58A3A;font-size:12px">${stars(r.rating)}</span>
+      <span class="rv-muted" style="display:inline">${r.semester?esc(r.semester.replace('-','-'))+'학기 수강생':'수강생'} · ${date}</span>
+    </div>
+    <div style="margin:4px 0"><span class="rv-pill">과제 ${esc(r.workload)}</span><span class="rv-pill">난이도 ${esc(r.difficulty)}</span>${r.mine?'<span class="rv-pill on">내 후기</span>':''}${r.hidden?'<span class="rv-pill warn">신고로 숨김됨</span>':''}</div>
+    <p style="font-size:12px;color:#333;line-height:1.55;white-space:pre-wrap">${esc(r.text)}</p>
+    <div style="text-align:right;margin-top:4px">${r.mine?`<button class="rv-link" onclick="deleteReview()">삭제</button>`
+      :r.reported?'<span class="rv-muted" style="display:inline">신고함</span>':`<button class="rv-link" onclick="reportReview('${esc(r.id)}')">🚩 신고</button>`}</div>
+  </div>`;
+}
+function reviewFormHtml(mine){
+  const seg=(field,opts)=>`<div class="rv-seg">${opts.map(o=>`<button type="button" class="${rvForm[field]===o?'on':''}" onclick="setRv('${field}','${o}',this)">${o}</button>`).join('')}</div>`;
+  return `<div class="rv-form">
+    <label>별점</label><div class="rv-stars">${[1,2,3,4,5].map(n=>`<button type="button" onclick="setStar(${n})" class="${rvForm.rating>=n?'on':''}">★</button>`).join('')}</div>
+    <label>과제량</label>${seg('workload',['적음','보통','많음'])}
+    <label>난이도</label>${seg('difficulty',['쉬움','보통','어려움'])}
+    <label>수강 학기</label><select id="rvSem">${[currentSemester(),'2026-1','2025-2','2025-1'].filter((v,i,a)=>a.indexOf(v)===i).map(v=>`<option ${mine&&mine.semester===v?'selected':''} value="${v}">${v.replace('-','년 ')}학기</option>`).join('')}</select>
+    <label>후기 <span id="rvLen" class="rv-muted" style="display:inline">(5~300자)</span></label>
+    <textarea id="rvText" maxlength="300" rows="4" placeholder="강의 내용, 과제·시험 스타일, 수강 팁 위주로 적어주세요." oninput="document.getElementById('rvLen').textContent='('+this.value.length+'/300자)'">${mine?esc(mine.text):''}</textarea>
+    <p class="rv-muted">익명으로 공개돼요. 교수님 비방·욕설·개인정보는 쓸 수 없고, 신고 3번이 쌓이면 자동으로 숨겨져요.</p>
+    <button class="btn-add" style="width:100%" onclick="submitReview()">${mine?'수정하기':'등록하기'}</button>
+  </div>`;
+}
+function toggleReviewForm(){const b=document.getElementById('rvFormBox');b.style.display=b.style.display==='none'?'':'none';if(b.style.display==='')document.getElementById('rvText').focus();}
+function setStar(n){rvForm.rating=n;document.querySelectorAll('.rv-stars button').forEach((b,i)=>b.classList.toggle('on',i<n));}
+function setRv(field,v,btn){rvForm[field]=v;btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));}
+async function submitReview(){
+  if(!rvForm.rating){showToast('별점을 골라주세요','1~5점 중에서 선택해주세요');return;}
+  const text=document.getElementById('rvText').value.trim();
+  try{
+    const d=await rvFetch('POST',{deviceId:DEVICE_ID,course:rvCur,rating:rvForm.rating,workload:rvForm.workload,difficulty:rvForm.difficulty,semester:document.getElementById('rvSem').value,text});
+    showToast(d.updated?'후기를 수정했어요':'후기를 등록했어요',`${rvCur} · ★ ${rvForm.rating}`);
+    openCourse(rvCur);
+  }catch(e){showToast('등록하지 못했어요',e.message);}
+}
+async function deleteReview(){
+  if(!confirmInline('rvDel'))return;
+  try{await rvFetch('DELETE',{deviceId:DEVICE_ID,course:rvCur});showToast('후기를 삭제했어요',rvCur);openCourse(rvCur);}
+  catch(e){showToast('삭제하지 못했어요',e.message);}
+}
+async function reportReview(id){
+  if(!confirmInline('rvRep'+id))return;
+  try{const d=await rvFetch('POST',{action:'report',deviceId:DEVICE_ID,course:rvCur,reviewId:id});
+    showToast('신고했어요',d.hidden?'신고가 쌓여 이 후기는 숨겨졌어요':'검토에 반영돼요. 3번 쌓이면 자동으로 숨겨져요');openCourse(rvCur);}
+  catch(e){showToast('신고하지 못했어요',e.message);}
+}
+// 브라우저 확인창 대신 버튼을 두 번 누르게 해서 실수를 막는다
+const rvArmed={};
+function confirmInline(key){
+  if(rvArmed[key]&&Date.now()-rvArmed[key]<4000){delete rvArmed[key];return true;}
+  rvArmed[key]=Date.now();showToast('한 번 더 누르면 진행돼요','4초 안에 같은 버튼을 다시 눌러주세요');return false;
 }
 
 // ── 초기화 ───────────────────────────────────────────────────
