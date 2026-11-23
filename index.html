@@ -143,7 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="next-class">
           <p class="nc-label"><i class="ic" style="font-size:11px">🔔</i> 다음 강의</p>
           <p class="nc-course" id="ncName">시간표를 입력해주세요</p>
-          <div class="nc-meta" id="ncMeta"><span><i class="ic">📅</i> 강의알림 탭에서 추가</span></div>
+          <div class="nc-meta" id="ncMeta"><span><i class="ic">📅</i> 시간표 탭에서 추가</span></div>
         </div>
         <div class="card">
           <p class="card-title"><i class="ic">🍽️</i> 오늘 점심 학식</p>
@@ -295,7 +295,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('home')" id="nav-home"><i class="ic">🏠</i><span>홈</span></div>
       <div class="nav-item" onclick="switchTab('food')" id="nav-food"><i class="ic">🍽️</i><span>학식</span></div>
-      <div class="nav-item" onclick="switchTab('alarm')" id="nav-alarm"><i class="ic">🔔</i><span>강의알림</span></div>
+      <div class="nav-item" onclick="switchTab('alarm')" id="nav-alarm"><i class="ic">📋</i><span>시간표</span></div>
       <div class="nav-item" onclick="switchTab('schedule')" id="nav-schedule"><i class="ic">🗓️</i><span>학사일정</span></div>
       <div class="nav-item" onclick="switchTab('rules')" id="nav-rules"><i class="ic">📖</i><span>교칙</span></div>
       <div class="nav-item" onclick="switchTab('review')" id="nav-review"><i class="ic">⭐</i><span>강의평가</span></div>
@@ -420,7 +420,7 @@ const TABS=['home','food','alarm','schedule','rules','review'];
 const hData={
   home:{t:'캠퍼스 도우미'},
   food:{t:'학식 메뉴',s:'승선생활관 식당'},
-  alarm:{t:'강의 알림',s:'캡처로 불러오거나 직접 입력'},
+  alarm:{t:'시간표',s:'시간표 등록과 강의 알림'},
   schedule:{t:'학사일정',s:'2026학년도 학사일정'},
   rules:{t:'교칙 안내',s:'카테고리별 규정 정리'},
   review:{t:'강의평가',s:'수강생 익명 후기 공유'},
@@ -534,7 +534,7 @@ function updateNextClass(){
   for(const c of classes){if(!c.on)continue;if(c.days.includes(todayDay)&&toMin(c.start)>nowMin){const diff=toMin(c.start)-nowMin;if(!next||diff<next.diff)next={...c,diff};}}
   if(!next){for(let i=1;i<=6;i++){const di=DAYS[(now.getDay()+i)%7];for(const c of classes){if(!c.on)continue;if(c.days.includes(di)){if(!next)next={...c,diff:i*1440+toMin(c.start)};}};if(next)break;}}
   const ne=document.getElementById('ncName'),me=document.getElementById('ncMeta');
-  if(!next){ne.textContent=classes.length?'이번 주 강의 없음':'시간표를 입력해주세요';me.innerHTML=`<span><i class="ic">📅</i> 강의알림 탭에서 추가</span>`;return;}
+  if(!next){ne.textContent=classes.length?'이번 주 강의 없음':'시간표를 입력해주세요';me.innerHTML=`<span><i class="ic">📅</i> 시간표 탭에서 추가</span>`;return;}
   const dH=Math.floor(next.diff/60),dM=next.diff%60;
   const ds=next.diff<60?`${next.diff}분 후`:dH>0&&dM>0?`${dH}시간 ${dM}분 후`:`${dH}시간 후`;
   ne.textContent=next.n;
@@ -870,7 +870,7 @@ async function loadReviewHome(){
   const myNames=[...new Map(classes.map(c=>[rvKey(c.n),c.n])).values()];
   mineEl.innerHTML=myNames.length?myNames.map(n=>{const i=info(n);
     return `<button class="rv-chip" onclick="openCourse(this.dataset.c)" data-c="${esc(n)}">${esc(n)}<span>${i?`★ ${i.avg.toFixed(1)} · ${i.count}개`:'후기 없음'}</span></button>`;}).join('')
-    :'<p class="rv-muted">강의알림 탭에서 시간표를 넣으면 내 과목이 여기에 나와요.</p>';
+    :'<p class="rv-muted">시간표 탭에서 시간표를 넣으면 내 과목이 여기에 나와요.</p>';
   if(rvIndex.length||!popEl.querySelector('.rv-err'))popEl.innerHTML=rvIndex.length?rvIndex.slice(0,30).map(c=>
     `<div class="rv-row" onclick="openCourse(this.dataset.c)" data-c="${esc(c.name)}"><div><div class="cn">${esc(c.name)}</div><div class="tr">후기 ${c.count}개</div></div><div class="rv-score">★ ${c.avg.toFixed(1)}</div></div>`).join('')
     :'<p class="rv-muted">아직 후기가 없어요. 첫 후기를 남겨주세요!</p>';
