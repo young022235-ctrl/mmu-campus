@@ -406,24 +406,14 @@ const quickData=[
   {q:'부정',a:'시험 부정행위 시 해당 학기 전 과목 F학점입니다.'},
 ];
 
-// ── 시간표 기본 데이터 ────────────────────────────────────────
-// 내가 고친 시간표는 이 기기에 저장되고, 없으면 아래 기본 시간표를 쓴다.
+// ── 시간표 데이터 ────────────────────────────────────────────
+// 시간표는 각 기기에만 저장된다. 처음 쓰는 사람은 빈 시간표로 시작한다.
 function loadClasses(){try{const v=JSON.parse(localStorage.getItem('classes')||'null');return Array.isArray(v)?v:null;}catch(e){return null;}}
 function saveClasses(){try{localStorage.setItem('classes',JSON.stringify(classes));}catch(e){}if(typeof syncServer==='function')syncServer();}
 const pToTime=p=>{const s=9*60+(p-1)*60;return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`};
 const pToEnd=p=>{const e=9*60+p*60;return`${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`};
 
-let classes=loadClasses()||[
-  {n:'갑판기기와하역제어',days:['화'],dayStr:'화',start:pToTime(1),end:pToEnd(2),room:'미래융복합관 9109',on:true,id:1},
-  {n:'선박자동화및네트워크',days:['수'],dayStr:'수',start:pToTime(1),end:pToEnd(3),room:'미래융복합관 9117',on:true,id:2},
-  {n:'선체구조및복원성',days:['목'],dayStr:'목',start:pToTime(1),end:pToEnd(2),room:'미래융복합관 9108',on:true,id:3},
-  {n:'제어공학',days:['화'],dayStr:'화',start:pToTime(3),end:pToEnd(3),room:'미래융복합관 9110',on:true,id:4},
-  {n:'금속재료공학',days:['금'],dayStr:'금',start:pToTime(5),end:pToEnd(5),room:'미래융복합관 9113',on:true,id:5},
-  {n:'캡스톤디자인II',days:['화'],dayStr:'화',start:pToTime(6),end:pToEnd(8),room:'글로벌창의융합관 8103',on:true,id:6},
-  {n:'금속재료공학',days:['수'],dayStr:'수',start:pToTime(6),end:pToEnd(7),room:'미래융복합관 9112',on:true,id:7},
-  {n:'외연기관',days:['금'],dayStr:'금',start:pToTime(6),end:pToEnd(7),room:'미래융복합관 9111',on:true,id:8},
-  {n:'제어공학',days:['월'],dayStr:'월',start:pToTime(7),end:pToEnd(8),room:'미래융복합관 9114',on:true,id:9},
-];
+let classes=loadClasses()||[];
 
 // ── 탭 전환 ──────────────────────────────────────────────────
 const TABS=['home','food','alarm','schedule','rules','review'];
@@ -488,7 +478,7 @@ function deleteClass(id){classes=classes.filter(c=>c.id!==id);saveClasses();rend
 function toggleClass(id){const c=classes.find(x=>x.id===id);if(c)c.on=!c.on;saveClasses();renderClasses();}
 function renderClasses(){
   const el=document.getElementById('classList');
-  if(!classes.length){el.innerHTML=`<div class="empty-state"><i class="ic">📭</i>강의를 추가해주세요.</div>`;return;}
+  if(!classes.length){el.innerHTML=`<div class="empty-state"><i class="ic">📭</i>아직 시간표가 없어요.<br>위에서 학사행정 시간표 캡처를 올리거나 직접 추가해주세요.</div>`;return;}
   el.innerHTML=classes.map(c=>`<div class="alarm-item">
     <div><div class="cn">${c.n}</div><div class="tr">${c.dayStr} ${c.start}~${c.end}${c.room?' · '+c.room:''}</div></div>
     <div style="display:flex;align-items:center;gap:6px">
